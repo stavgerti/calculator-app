@@ -76,5 +76,24 @@ pipeline {
                 }
             }
         }
+
+        stage('Health Check') {
+            when { branch 'master' }
+            agent any
+            steps {
+                sh '''
+                    for i in 1 2 3 4 5; do
+                        if curl -sf http://${PRODUCTION_IP}:5000/health; then
+                            echo "Health check passed"
+                            exit 0
+                        fi
+                        echo "Attempt $i failed, retrying in 5s..."
+                        sleep 5
+                    done
+                    echo "Health check failed after 5 attempts"
+                    exit 1
+                '''
+            }
+        }
     }
 }
