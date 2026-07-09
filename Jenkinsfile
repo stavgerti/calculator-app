@@ -47,8 +47,10 @@ pipeline {
             }
             steps {
                 sh '''
-                    apk add --no-cache python3 py3-pip
-                    pip install --no-cache-dir --break-system-packages awscli
+                    apk add --no-cache curl unzip
+                    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+                    unzip -q awscliv2.zip
+                    ./aws/install
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
