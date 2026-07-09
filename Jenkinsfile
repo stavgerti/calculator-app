@@ -4,6 +4,7 @@ pipeline {
     environment {
         AWS_REGION = "us-east-1"
         ECR_REPO   = "992382545251.dkr.ecr.us-east-1.amazonaws.com/stav-calculator-app"
+        PRODUCTION_IP = "34.201.132.77"
     }
 
     stages {
@@ -55,6 +56,24 @@ pipeline {
                     docker push ${ECR_REPO}:${IMAGE_TAG}
                     echo "Pushed image: ${ECR_REPO}:${IMAGE_TAG}"
                 '''
+            }
+        }
+
+        stage('Deploy to Production') {
+            when { branch 'master' }
+            agent any
+            steps {
+                sshagent(credentials: ['production-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@${PRODUCTION_IP} "
+                            aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REPO} &&
+                            sudo docker pull ${ECR_REPO}:${IMAGE_TAG} &&
+                            sudo docker stop calculator-app || true &&
+                            sudo docker rm calculator-app || true &&
+                            sudo docker run -d --name calculator-app -p 5000:5000 ${ECR_REPO}:${IMAGE_TAG}
+                        "
+                    '''
+                }
             }
         }
     }
