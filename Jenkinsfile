@@ -42,17 +42,14 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.11-slim'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113 -u root:root'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker -e HOME=/tmp --group-add 113 -u root:root'
                 }
             }
             steps {
                 sh '''
                     set -e
-                    export PATH=$PATH:/tmp/.local/bin:/root/.local/bin
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends docker.io
+                    export PATH=$PATH:/root/.local/bin
                     pip install --no-cache-dir --quiet awscli
-                    command -v docker
-                    command -v aws
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
