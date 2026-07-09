@@ -41,12 +41,13 @@ pipeline {
         stage('Push to ECR') {
             agent {
                 docker {
-                    image 'amazon/aws-cli'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113 --entrypoint=""'
+                    image 'docker:24-cli'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113'
                 }
             }
             steps {
                 sh '''
+                    apk add --no-cache aws-cli
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
