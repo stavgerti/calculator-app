@@ -41,16 +41,14 @@ pipeline {
         stage('Push to ECR') {
             agent {
                 docker {
-                    image 'docker:24-cli'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113 -u root:root'
+                    image 'python:3.11-slim'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113'
                 }
             }
             steps {
                 sh '''
-                    apk add --no-cache curl unzip
-                    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
-                    unzip -q awscliv2.zip
-                    ./aws/install
+                    apt-get update && apt-get install -y --no-install-recommends docker.io
+                    pip install --no-cache-dir awscli
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
