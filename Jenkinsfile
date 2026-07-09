@@ -42,13 +42,13 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.11-slim'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113 -u root:root'
                 }
             }
             steps {
                 sh '''
                     set -e
-                    export PATH=$PATH:/tmp/.local/bin
+                    export PATH=$PATH:/tmp/.local/bin:/root/.local/bin
                     apt-get update -qq && apt-get install -y -qq --no-install-recommends docker.io
                     pip install --no-cache-dir --quiet awscli
                     which docker
