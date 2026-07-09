@@ -22,5 +22,19 @@ pipeline {
                 sh 'docker build -t calculator-app:${IMAGE_TAG} .'
             }
         }
+
+        stage('Test') {
+            agent {
+                docker {
+                    image 'python:3.11-slim'
+                }
+            }
+            steps {
+                sh '''
+                    pip install --no-cache-dir -r requirements.txt
+                    python -m unittest discover -s tests
+                '''
+            }
+        }
     }
 }
