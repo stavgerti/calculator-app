@@ -42,7 +42,7 @@ pipeline {
             agent {
                 docker {
                     image 'docker:24-cli'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp -u root:root'
                 }
             }
             steps {
