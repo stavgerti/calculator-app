@@ -27,6 +27,7 @@ pipeline {
             agent {
                 docker {
                     image 'python:3.11-slim'
+                    args '-e HOME=/tmp'
                 }
             }
             steps {
