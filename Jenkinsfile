@@ -38,17 +38,30 @@ pipeline {
             }
         }
 
+        stage('Get ECR Login Token') {
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args '--entrypoint=""'
+                }
+            }
+            steps {
+                sh 'aws ecr get-login-password --region ${AWS_REGION} > ecr_token.txt'
+                stash name: 'ecrtoken', includes: 'ecr_token.txt'
+            }
+        }
+
         stage('Push to ECR') {
             agent {
                 docker {
                     image 'docker:24-cli'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp -u root:root'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -e HOME=/tmp --group-add 113'
                 }
             }
             steps {
+                unstash 'ecrtoken'
                 sh '''
-                    apk add --no-cache aws-cli
-                    aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
+                    cat ecr_token.txt | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
                     echo "Pushed image: ${ECR_REPO}:${IMAGE_TAG}"
