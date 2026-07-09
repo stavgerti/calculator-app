@@ -47,8 +47,12 @@ pipeline {
             }
             steps {
                 sh '''
-                    apt-get update && apt-get install -y --no-install-recommends docker.io
-                    pip install --no-cache-dir awscli
+                    set -e
+                    export PATH=$PATH:/tmp/.local/bin
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends docker.io
+                    pip install --no-cache-dir --quiet awscli
+                    which docker
+                    which aws
                     aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
                     docker tag calculator-app:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
                     docker push ${ECR_REPO}:${IMAGE_TAG}
