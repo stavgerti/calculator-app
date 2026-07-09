@@ -16,7 +16,7 @@ pipeline {
             }
             steps {
                 script {
-                    def tag = env.CHANGE_ID ? "pr-${env.CHANGE_ID}-${env.BUILD_NUMBER}" : "master-${env.BUILD_NUMBER}"
+                    def tag = env.CHANGE_ID ? "pr-${env.CHANGE_ID}-${env.BUILD_NUMBER}" : env.GIT_COMMIT.take(7)
                     env.IMAGE_TAG = tag
                 }
                 sh 'docker build -t calculator-app:${IMAGE_TAG} .'
